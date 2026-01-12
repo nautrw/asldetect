@@ -21,6 +21,8 @@ options = vision.HandLandmarkerOptions(
 )
 
 with vision.HandLandmarker.create_from_options(options) as landmarker:
+    frame = 1
+
     while True:
         success, img = capture.read()
 
@@ -28,7 +30,9 @@ with vision.HandLandmarker.create_from_options(options) as landmarker:
 
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
 
-        landmarker.detect_async(mp_image, 1)
+        landmarker.detect_async(mp_image, frame)
+
+        frame += 1
 
         cv2.imshow("Landmarker", img)
         cv2.waitKey(1)
