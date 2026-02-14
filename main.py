@@ -9,11 +9,15 @@ model_path = "./models/hand_landmarker.task"
 capture = cv2.VideoCapture(0)
 
 
-# show_result is only called for capture_live_steam()
 def show_result(
-    result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int
+    result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int = 0
 ):
-    print(result)
+    if result.hand_landmarks:
+        for hand in result.hand_landmarks:
+            print(get_clean_landmarks(hand))
+            drawing_utils.draw_landmarks(
+                output_image, hand, vision.HandLandmarksConnections.HAND_CONNECTIONS
+            )
 
 
 def capture_live_steam():
@@ -32,6 +36,8 @@ def capture_live_steam():
 
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
             landmarker.detect_async(mp_image, frame)
+
+            # show_result is called automatically for capture_live_steam
 
             frame += 1
 
@@ -52,16 +58,14 @@ def capture_image():
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
         result = landmarker.detect(mp_image)
 
-        if result.hand_landmarks:
-            print(get_landmarks_from_data(result))
-            drawing_utils.draw_landmarks(img, result.hand_landmarks[0])
+        show_result(result, img)
 
         cv2.imshow("Landmarker", img)
         cv2.waitKey(100000000)  # Prevents the window from closing immediately
 
 
-def get_landmarks_from_data(data: vision.HandLandmarkerResult):
-    return [(landmark.x, landmark.y, landmark.z) for landmark in data.hand_landmarks[0]]
+def get_clean_landmarks(hand):
+    return [(landmark.x, landmark.y, landmark.z) for landmark in hand]
 
 
 capture_image()
