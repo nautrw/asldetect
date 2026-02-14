@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+from mediapipe.tasks.python.vision import drawing_utils
 
 model_path = "./models/hand_landmarker.task"
 
@@ -53,6 +54,7 @@ def capture_image():
 
         if result.hand_landmarks:
             print(get_landmarks_from_data(result))
+            drawing_utils.draw_landmarks(img, result.hand_landmarks[0])
 
         cv2.imshow("Landmarker", img)
         cv2.waitKey(100000000)  # Prevents the window from closing immediately
