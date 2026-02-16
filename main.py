@@ -1,6 +1,5 @@
 import cv2
 import mediapipe as mp
-from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
 
@@ -9,22 +8,29 @@ model_path = "./models/hand_landmarker.task"
 capture = cv2.VideoCapture(0)
 
 
-def show_result(
+def show_live_stream_result(
     result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int = 0
 ):
+    annotated_image = output_image.numpy_view().copy()
+
     if result.hand_landmarks:
         for hand in result.hand_landmarks:
             print(get_clean_landmarks(hand))
             drawing_utils.draw_landmarks(
-                output_image, hand, vision.HandLandmarksConnections.HAND_CONNECTIONS
+                annotated_image,
+                hand,
+                vision.HandLandmarksConnections.HAND_CONNECTIONS,
             )
 
+    cv2.imshow("Landmarker", annotated_image)
+    cv2.waitKey(1)
 
-def capture_live_steam():
+
+def capture_live_stream():
     options = vision.HandLandmarkerOptions(
         base_options=mp.tasks.BaseOptions(model_asset_path=model_path),
         running_mode=vision.RunningMode.LIVE_STREAM,
-        result_callback=show_result,
+        result_callback=show_live_stream_result(),
     )
 
     with vision.HandLandmarker.create_from_options(options) as landmarker:
@@ -41,8 +47,8 @@ def capture_live_steam():
 
             frame += 1
 
-            cv2.imshow("Landmarker", img)
-            cv2.waitKey(1)
+            # cv2.imshow("Landmarker", img)
+            # cv2.waitKey(1)
 
 
 def capture_image():
@@ -58,10 +64,17 @@ def capture_image():
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
         result = landmarker.detect(mp_image)
 
-        show_result(result, img)
+        if result.hand_landmarks:
+            for hand in result.hand_landmarks:
+                print(get_clean_landmarks(hand))
+                drawing_utils.draw_landmarks(
+                    img,
+                    hand,
+                    vision.HandLandmarksConnections.HAND_CONNECTIONS,
+                )
 
         cv2.imshow("Landmarker", img)
-        cv2.waitKey(100000000)  # Prevents the window from closing immediately
+        cv2.waitKey(0)
 
 
 def get_clean_landmarks(hand):
