@@ -3,15 +3,19 @@ import mediapipe as mp
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
 import os
+import random
 model_path = "./models/hand_landmarker.task"
 
 capture = cv2.VideoCapture(0)
 
+if not os.path.exists("./imgdata"):
+    os.makedirs("imgdata")
 
 def show_live_stream_result(
     result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int = 0
 ):
-    annotated_image = output_image.numpy_view().copy()
+    output_image = cv2.cvtColor(output_image.numpy_view(), cv2.COLOR_BGR2RGB)
+    annotated_image = output_image.copy()
 
     if result.hand_landmarks:
         for hand in result.hand_landmarks:
@@ -22,12 +26,20 @@ def show_live_stream_result(
                 vision.HandLandmarksConnections.HAND_CONNECTIONS,
             )
   
-    annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
     
     cv2.imshow("Landmarker", annotated_image)
 
-    if cv2.waitKey(1) == ord('q'):
+    keypress = cv2.waitKey(1) & 0xFF
+
+    if keypress == ord('q'):
+        cv2.destroyAllWindows()
         os._exit(1)
+    elif keypress == ord('c'):
+        if not os.path.exists("unprocessed_data"):
+            os.makedirs("unprocessed_data")
+       
+        filename = ''.join([str(random.randint(0, 1000000)) for _ in range(10)]) # random placeholder for image file
+        cv2.imwrite(os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image)
 
 def capture_live_stream():
     options = vision.HandLandmarkerOptions(
