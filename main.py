@@ -21,7 +21,9 @@ def show_live_stream_result(
                 hand,
                 vision.HandLandmarksConnections.HAND_CONNECTIONS,
             )
-
+  
+    annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+    
     cv2.imshow("Landmarker", annotated_image)
     cv2.waitKey(1)
 
@@ -30,7 +32,7 @@ def capture_live_stream():
     options = vision.HandLandmarkerOptions(
         base_options=mp.tasks.BaseOptions(model_asset_path=model_path),
         running_mode=vision.RunningMode.LIVE_STREAM,
-        result_callback=show_live_stream_result(),
+        result_callback=show_live_stream_result,
     )
 
     with vision.HandLandmarker.create_from_options(options) as landmarker:
@@ -81,4 +83,4 @@ def get_clean_landmarks(hand):
     return [(landmark.x, landmark.y, landmark.z) for landmark in hand]
 
 
-capture_image()
+capture_live_stream()
