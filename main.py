@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
-
+import os
 model_path = "./models/hand_landmarker.task"
 
 capture = cv2.VideoCapture(0)
@@ -25,8 +25,9 @@ def show_live_stream_result(
     annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
     
     cv2.imshow("Landmarker", annotated_image)
-    cv2.waitKey(1)
 
+    if cv2.waitKey(1) == ord('q'):
+        os._exit(1)
 
 def capture_live_stream():
     options = vision.HandLandmarkerOptions(
