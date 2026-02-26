@@ -116,7 +116,6 @@ def get_clean_landmarks(hand):
     for landmark in hand:
         res.append(landmark.x)
         res.append(landmark.y)
-        res.append(landmark.z)
         
     return res
 
