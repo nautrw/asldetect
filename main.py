@@ -4,12 +4,19 @@ from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
 import os
 import random
+import sklearn
+import json
+
 model_path = "./models/hand_landmarker.task"
 
 capture = cv2.VideoCapture(0)
 
 if not os.path.exists("./imgdata"):
     os.makedirs("imgdata")
+    
+if not os.path.exists("./data.json"):
+    with open("data.json", "x+") as f:
+        f.write('{"data":[],"characters":[]}')
 
 def show_live_stream_result(
     result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int = 0
@@ -40,6 +47,17 @@ def show_live_stream_result(
        
         filename = ''.join([str(random.randint(0, 1000000)) for _ in range(10)]) # random placeholder for image file
         cv2.imwrite(os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image)
+    elif keypress == ord('s'):
+        char = input('Character to save data for: ')
+        
+        with open('data.json', 'r+') as f:
+            data = json.load(f)
+            
+            data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
+            data["characters"].append(char)
+            
+            f.seek(0)
+            json.dump(data, f) 
 
 def capture_live_stream():
     options = vision.HandLandmarkerOptions(
@@ -93,7 +111,14 @@ def capture_image():
 
 
 def get_clean_landmarks(hand):
-    return [(landmark.x, landmark.y, landmark.z) for landmark in hand]
+    res = []
+    
+    for landmark in hand:
+        res.append(landmark.x)
+        res.append(landmark.y)
+        res.append(landmark.z)
+        
+    return res
 
 
 capture_live_stream()

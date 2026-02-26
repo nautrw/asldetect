@@ -6,3 +6,4 @@ numpy
 opencv-python
 pycparser
 sounddevice
+scikit-learn

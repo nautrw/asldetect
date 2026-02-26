@@ -1,2 +1,5 @@
 .venv/
 models/
+unprocessed_data/
+imgdata/
+data.json
