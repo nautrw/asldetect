@@ -4,8 +4,12 @@ from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
 import os
 import random
-import sklearn
 import json
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import pickle
 
 model_path = "./models/hand_landmarker.task"
 
@@ -26,13 +30,12 @@ def show_live_stream_result(
 
     if result.hand_landmarks:
         for hand in result.hand_landmarks:
-            print(get_clean_landmarks(hand))
+            # print(get_clean_landmarks(hand))
             drawing_utils.draw_landmarks(
                 annotated_image,
                 hand,
                 vision.HandLandmarksConnections.HAND_CONNECTIONS,
             )
-  
     
     cv2.imshow("Landmarker", annotated_image)
 
@@ -57,7 +60,13 @@ def show_live_stream_result(
             data["characters"].append(char)
             
             f.seek(0)
-            json.dump(data, f) 
+            json.dump(data, f)
+    elif keypress == ord('p'):
+        with open("model.pickle", "rb") as f:
+            model = pickle.load(f)
+        
+        prediction = model.predict([np.asarray(get_clean_landmarks(result.hand_landmarks[0]))])
+        print(prediction)
 
 def capture_live_stream():
     options = vision.HandLandmarkerOptions(
@@ -119,5 +128,25 @@ def get_clean_landmarks(hand):
         
     return res
 
+def train_model():
+    with open("data.json", "r") as f:
+        data = json.load(f)
+        
+    cords = np.asarray(data["data"]) 
+    chars = np.asarray(data["characters"])
+    
+    x_train, x_test, y_train, y_test = train_test_split(cords, chars, test_size=0.2, shuffle=True, stratify=chars)
+    
+    model = RandomForestClassifier()
+    model.fit(x_train, y_train)
+    
+    predict_y = model.predict(x_test)
+    accuracy = accuracy_score(predict_y, y_test)
+    
+    print(f"Trained with {accuracy * 100}% accuracy")
+    
+    with open("model.pickle", "wb") as f:
+        pickle.dump(model, f)
 
 capture_live_stream()
+# train_model()
