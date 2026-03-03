@@ -36,7 +36,7 @@ def show_live_stream_result(
                 hand,
                 vision.HandLandmarksConnections.HAND_CONNECTIONS,
             )
-    
+
     cv2.imshow("Landmarker", annotated_image)
 
     keypress = cv2.waitKey(1) & 0xFF
@@ -47,24 +47,29 @@ def show_live_stream_result(
     elif keypress == ord('c'):
         if not os.path.exists("unprocessed_data"):
             os.makedirs("unprocessed_data")
-       
+
         filename = ''.join([str(random.randint(0, 1000000)) for _ in range(10)]) # random placeholder for image file
         cv2.imwrite(os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image)
     elif keypress == ord('s'):
-        char = input('Character to save data for: ')
-        
-        with open('data.json', 'r+') as f:
-            data = json.load(f)
-            
-            data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
-            data["characters"].append(char)
-            
-            f.seek(0)
-            json.dump(data, f)
+        char = input('Character to save data for (`pass` to not save anything): ')
+
+        if char == "pass":
+            print("Passing; no data will be saved.")
+        else:
+            with open('data.json', 'r+') as f:
+                data = json.load(f)
+
+                data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
+                data["characters"].append(char)
+
+                f.seek(0)
+                json.dump(data, f)
+
+            print(f"Successfully saved data for character {char}")
     elif keypress == ord('p'):
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
-        
+
         prediction = model.predict([np.asarray(get_clean_landmarks(result.hand_landmarks[0]))])
         print(prediction)
 
