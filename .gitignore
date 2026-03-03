@@ -4,3 +4,4 @@ unprocessed_data/
 imgdata/
 data.json
 model.pickle
+.env

@@ -17,10 +17,11 @@ capture = cv2.VideoCapture(0)
 
 if not os.path.exists("./imgdata"):
     os.makedirs("imgdata")
-    
+
 if not os.path.exists("./data.json"):
     with open("data.json", "x+") as f:
         f.write('{"data":[],"characters":[]}')
+
 
 def show_live_stream_result(
     result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int = 0
@@ -41,22 +42,26 @@ def show_live_stream_result(
 
     keypress = cv2.waitKey(1) & 0xFF
 
-    if keypress == ord('q'):
+    if keypress == ord("q"):
         cv2.destroyAllWindows()
         os._exit(1)
-    elif keypress == ord('c'):
+    elif keypress == ord("c"):
         if not os.path.exists("unprocessed_data"):
             os.makedirs("unprocessed_data")
 
-        filename = ''.join([str(random.randint(0, 1000000)) for _ in range(10)]) # random placeholder for image file
-        cv2.imwrite(os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image)
-    elif keypress == ord('s'):
-        char = input('Character to save data for (`pass` to not save anything): ')
+        filename = "".join(
+            [str(random.randint(0, 1000000)) for _ in range(10)]
+        )  # random placeholder for image file
+        cv2.imwrite(
+            os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image
+        )
+    elif keypress == ord("s"):
+        char = input("Character to save data for (`pass` to not save anything): ")
 
         if char == "pass":
             print("Passing; no data will be saved.")
         else:
-            with open('data.json', 'r+') as f:
+            with open("data.json", "r+") as f:
                 data = json.load(f)
 
                 data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
@@ -65,13 +70,16 @@ def show_live_stream_result(
                 f.seek(0)
                 json.dump(data, f)
 
-            print(f"Successfully saved data for character {char}")
-    elif keypress == ord('p'):
+            print(f"Successfully saved data for character `{char}`.")
+    elif keypress == ord("p"):
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
 
-        prediction = model.predict([np.asarray(get_clean_landmarks(result.hand_landmarks[0]))])
+        prediction = model.predict(
+            [np.asarray(get_clean_landmarks(result.hand_landmarks[0]))]
+        )
         print(prediction)
+
 
 def capture_live_stream():
     options = vision.HandLandmarkerOptions(
@@ -126,32 +134,36 @@ def capture_image():
 
 def get_clean_landmarks(hand):
     res = []
-    
+
     for landmark in hand:
         res.append(landmark.x)
         res.append(landmark.y)
-        
+
     return res
+
 
 def train_model():
     with open("data.json", "r") as f:
         data = json.load(f)
-        
-    cords = np.asarray(data["data"]) 
+
+    cords = np.asarray(data["data"])
     chars = np.asarray(data["characters"])
-    
-    x_train, x_test, y_train, y_test = train_test_split(cords, chars, test_size=0.2, shuffle=True, stratify=chars)
-    
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        cords, chars, test_size=0.2, shuffle=True, stratify=chars
+    )
+
     model = RandomForestClassifier()
     model.fit(x_train, y_train)
-    
+
     predict_y = model.predict(x_test)
     accuracy = accuracy_score(predict_y, y_test)
-    
+
     print(f"Trained with {accuracy * 100}% accuracy")
-    
+
     with open("model.pickle", "wb") as f:
         pickle.dump(model, f)
+
 
 capture_live_stream()
 # train_model()
