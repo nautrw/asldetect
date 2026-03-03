@@ -10,8 +10,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import pickle
+from google import genai
 
 model_path = "./models/hand_landmarker.task"
+gemini_client = genai.Client()
 
 capture = cv2.VideoCapture(0)
 
@@ -21,6 +23,8 @@ if not os.path.exists("./imgdata"):
 if not os.path.exists("./data.json"):
     with open("data.json", "x+") as f:
         f.write('{"data":[],"characters":[]}')
+
+sentence_raw = []
 
 
 def show_live_stream_result(
@@ -75,10 +79,21 @@ def show_live_stream_result(
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
 
-        prediction = model.predict(
+        prediction = str(model.predict(
             [np.asarray(get_clean_landmarks(result.hand_landmarks[0]))]
+        )[0])
+
+        ask_append = input(
+            f"Append character `{prediction}` to raw sentence array? [y/n]:  "
         )
-        print(prediction)
+
+        if ask_append == "y":
+            sentence_raw.append(prediction)
+            print(
+                f"Appended character `{prediction}` to raw sentence array; array is now `{sentence_raw}`"
+            )
+        else:
+            print("Appending noting.")
 
 
 def capture_live_stream():
