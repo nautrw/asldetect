@@ -1,16 +1,17 @@
+import json
+import os
+import pickle
+import random
+
 import cv2
 import mediapipe as mp
+import numpy as np
+from google import genai
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
-import os
-import random
-import json
-import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-import pickle
-from google import genai
+from sklearn.model_selection import train_test_split
 
 model_path = "./models/hand_landmarker.task"
 gemini_client = genai.Client()
@@ -191,5 +192,28 @@ def train_model():
         pickle.dump(model, f)
 
 
-capture_live_stream()
-# train_model()
+def main():
+    choice = input(
+        "1. Capture live stream\n2. Train model\n3. See training data statistics\nSelect an option: "
+    )
+
+    match choice:
+        case "1":
+            capture_live_stream()
+        case "2":
+            train_model()
+        case "3":
+            with open("data.json", "r") as f:
+                data = json.load(f)["characters"]
+
+                raw_counts = dict((key, data.count(key)) for key in set(data))
+
+                for key, value in raw_counts.items():
+                    print(f"`{key}``: {value}")
+
+                print(f"Total of {len(data)} characters.")
+        case _:
+            exit("Exiting.")
+
+
+main()
