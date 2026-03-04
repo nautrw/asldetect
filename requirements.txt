@@ -7,3 +7,4 @@ opencv-python
 pycparser
 sounddevice
 scikit-learn
+google-genai
