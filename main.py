@@ -79,9 +79,11 @@ def show_live_stream_result(
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
 
-        prediction = str(model.predict(
-            [np.asarray(get_clean_landmarks(result.hand_landmarks[0]))]
-        )[0])
+        prediction = str(
+            model.predict([np.asarray(get_clean_landmarks(result.hand_landmarks[0]))])[
+                0
+            ]
+        )
 
         ask_append = input(
             f"Append character `{prediction}` to raw sentence array? [y/n]:  "
@@ -93,7 +95,16 @@ def show_live_stream_result(
                 f"Appended character `{prediction}` to raw sentence array; array is now `{sentence_raw}`"
             )
         else:
-            print("Appending noting.")
+            print("Appending nothing.")
+    elif keypress == ord("o"):
+        sentence_string = "".join(sentence_raw)
+
+        response = gemini_client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=f"Turn the following string of letters into proper english. Fill in any missing characters, and complete names if neccessary. Try not to rearrange letters as much as possible. Return ONLY the result.\n\n{sentence_string}",
+        )
+
+        print(response.text)
 
 
 def capture_live_stream():
