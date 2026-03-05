@@ -15,9 +15,6 @@ from sklearn.model_selection import train_test_split
 
 model_path = "./models/hand_landmarker.task"
 
-print("Starting Gemini client")
-gemini_client = genai.Client()
-print("Started Gemini client")
 
 capture = cv2.VideoCapture(0)
 
@@ -103,7 +100,12 @@ def show_live_stream_result(
     elif keypress == ord("o"):
         sentence_string = "".join(sentence_raw)
 
-        print(f"Sending prompt for {sentence_string}")
+        print("Starting Gemini client")
+        gemini_client = genai.Client()
+        print("Started Gemini client")
+
+        print(f"Sending prompt for `{sentence_string}`")
+
         response = gemini_client.models.generate_content(
             model="gemini-3-flash-preview",
             contents=f"Turn the following string of letters into proper english. Fill in any missing characters, and complete names if neccessary. Try not to rearrange letters as much as possible. Return ONLY the result.\n\n{sentence_string}",
