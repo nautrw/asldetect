@@ -29,7 +29,7 @@ sentence_raw = []
 
 
 def show_live_stream_result(
-    result: vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int = 0
+    result, output_image, timestamp_ms = 0
 ):
     output_image = cv2.cvtColor(output_image.numpy_view(), cv2.COLOR_BGR2RGB)
     annotated_image = output_image.copy()
