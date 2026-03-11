@@ -108,19 +108,19 @@ def show_live_stream_result(
 
 
 def capture_live_stream():
-    capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(0)
 
-    options = vision.HandLandmarkerOptions(
+    landmarker_options = vision.HandLandmarkerOptions(
         base_options=mp.tasks.BaseOptions(model_asset_path=model_path),
         running_mode=vision.RunningMode.LIVE_STREAM,
         result_callback=show_live_stream_result,
     )
 
-    with vision.HandLandmarker.create_from_options(options) as landmarker:
+    with vision.HandLandmarker.create_from_options(landmarker_options) as landmarker:
         frame = 1
 
         while True:
-            success, img = capture.read()
+            _, img = video_capture.read()
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
