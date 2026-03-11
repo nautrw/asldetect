@@ -1,7 +1,6 @@
 import json
 import os
 import pickle
-import random
 
 import cv2
 import mediapipe as mp
