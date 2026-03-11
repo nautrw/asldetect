@@ -114,7 +114,9 @@ def capture_live_stream():
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
-            landmarker.detect_async(mp_image, frame) # Will call show_livestream_result, as seen in landmarker_options
+            
+            # Will call show_livestream_result, as seen in landmarker_options 
+            landmarker.detect_async(mp_image, frame)
 
             frame += 1
 
