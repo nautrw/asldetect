@@ -18,10 +18,6 @@ model_path = "./models/hand_landmarker.task"
 
 capture = cv2.VideoCapture(0)
 
-if not os.path.exists("./data.json"):
-    with open("data.json", "x+") as f:
-        f.write('{"data":[],"characters":[]}')
-
 sentence_raw = []
 
 
@@ -63,6 +59,10 @@ def show_live_stream_result(
         if char == "pass":
             print("Passing; no data will be saved.")
         else:
+            if not os.path.exists("./data.json"):
+                with open("data.json", "x+") as f:
+                    f.write('{"data":[],"characters":[]}')
+
             with open("data.json", "r+") as f:
                 data = json.load(f)
 
