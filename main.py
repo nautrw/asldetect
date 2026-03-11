@@ -18,9 +18,6 @@ model_path = "./models/hand_landmarker.task"
 
 capture = cv2.VideoCapture(0)
 
-if not os.path.exists("./imgdata"):
-    os.makedirs("imgdata")
-
 if not os.path.exists("./data.json"):
     with open("data.json", "x+") as f:
         f.write('{"data":[],"characters":[]}')
