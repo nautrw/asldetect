@@ -15,14 +15,15 @@ from sklearn.model_selection import train_test_split
 
 model_path = "./models/hand_landmarker.task"
 
-sentence_raw = []
 
+# TODO: Consider removing timestamp variable? Seems to no longer be used
 def show_live_stream_result(
-    result, output_image, timestamp_ms = 0
+    result, output_image, timestamp_ms = 0 
 ):
     output_image = cv2.cvtColor(output_image.numpy_view(), cv2.COLOR_BGR2RGB)
     annotated_image = output_image.copy()
-
+    raw_sentence = []
+    
     if result.hand_landmarks:
         for hand in result.hand_landmarks:
             drawing_utils.draw_landmarks(
@@ -73,14 +74,14 @@ def show_live_stream_result(
         )
 
         if ask_append == "y":
-            sentence_raw.append(prediction)
+            raw_sentence.append(prediction)
             print(
-                f"Appended character `{prediction}` to raw sentence array; array is now `{sentence_raw}`"
+                f"Appended character `{prediction}` to raw sentence array; array is now `{raw_sentence}`"
             )
         else:
             print("Appending nothing.")
     elif keypress == ord("o"):
-        sentence_string = "".join(sentence_raw)
+        sentence_string = "".join(raw_sentence)
 
         print("Starting Gemini client")
         gemini_client = genai.Client()
