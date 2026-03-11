@@ -38,16 +38,6 @@ def show_live_stream_result(
     if keypress == ord("q"):
         cv2.destroyAllWindows()
         os._exit(1)
-    elif keypress == ord("c"):
-        if not os.path.exists("unprocessed_data"):
-            os.makedirs("unprocessed_data")
-
-        filename = "".join(
-            [str(random.randint(0, 1000000)) for _ in range(10)]
-        )
-        cv2.imwrite(
-            os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image
-        )
     elif keypress == ord("s"):
         char = input("Character to save data for (`pass` to not save anything): ")
 
