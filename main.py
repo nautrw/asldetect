@@ -15,11 +15,7 @@ from sklearn.model_selection import train_test_split
 
 model_path = "./models/hand_landmarker.task"
 
-
-capture = cv2.VideoCapture(0)
-
 sentence_raw = []
-
 
 def show_live_stream_result(
     result, output_image, timestamp_ms = 0
@@ -112,6 +108,8 @@ def show_live_stream_result(
 
 
 def capture_live_stream():
+    capture = cv2.VideoCapture(0)
+
     options = vision.HandLandmarkerOptions(
         base_options=mp.tasks.BaseOptions(model_asset_path=model_path),
         running_mode=vision.RunningMode.LIVE_STREAM,
