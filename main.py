@@ -167,7 +167,8 @@ def main():
         case "3":
             with open("data.json", "r") as f:
                 data = json.load(f)["characters"]
-
+                
+                # TODO: Make sure that this is sorted alphabetically
                 raw_counts = dict((key, data.count(key)) for key in set(data))
 
                 for key, value in raw_counts.items():
