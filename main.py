@@ -25,7 +25,6 @@ def show_live_stream_result(
 
     if result.hand_landmarks:
         for hand in result.hand_landmarks:
-            # print(get_clean_landmarks(hand))
             drawing_utils.draw_landmarks(
                 annotated_image,
                 hand,
@@ -45,7 +44,7 @@ def show_live_stream_result(
 
         filename = "".join(
             [str(random.randint(0, 1000000)) for _ in range(10)]
-        )  # random placeholder for image file
+        )
         cv2.imwrite(
             os.path.join("./unprocessed_data", f"{''.join(filename)}.jpg"), output_image
         )
@@ -124,14 +123,9 @@ def capture_live_stream():
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
-            landmarker.detect_async(mp_image, frame)
-
-            # show_result is called automatically for capture_live_steam
+            landmarker.detect_async(mp_image, frame) # Will call show_livestream_result, as seen in landmarker_options
 
             frame += 1
-
-            # cv2.imshow("Landmarker", img)
-            # cv2.waitKey(1)
 
 
 def get_clean_landmarks(hand):
