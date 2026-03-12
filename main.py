@@ -23,8 +23,8 @@ def show_live_stream_result(
     annotated_image = output_image.copy()
     raw_sentence = []
     
-    if result.hand_landmarks:
-        for hand in result.hand_landmarks:
+    if landmarks_list := result.hand_landmarks:
+        for hand in landmarks_list:
             drawing_utils.draw_landmarks(
                 annotated_image,
                 hand,
