@@ -12,19 +12,30 @@ from mediapipe.tasks.python.vision import drawing_utils
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from dotenv import load_dotenv, dotenv_values
 
 model_path = "./models/hand_landmarker.task"
+
+if load_dotenv():
+    print("Loaded .env")
+else:
+    print("Failed to load .env")
+
 char = input("Character to save data for (`pass` to not save anything): ")
 print(f"Will save for `{char}` (or not if `pass`)")
 ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
-print(f"Saved option {ask_append}")
+print(f"Saved option `{ask_append}`")
+raw_sentence = [] # Must start this here even if it won't be used
+
+print("Starting Gemini client")
+gemini_client = genai.Client(api_key=dotenv_values()["GEMINI_API_KEY"])
+print("Started Gemini client")
 
 def show_live_stream_result(
     result, output_image, timestamp_ms = 0 
 ):
     output_image = cv2.cvtColor(output_image.numpy_view(), cv2.COLOR_BGR2RGB)
     annotated_image = output_image.copy()
-    raw_sentence = []
     
     if landmarks_list := result.hand_landmarks:
         for hand in landmarks_list:
@@ -70,6 +81,7 @@ def show_live_stream_result(
             ]
         )
 
+
         if ask_append == "y":
             raw_sentence.append(prediction)
             print(
@@ -77,12 +89,11 @@ def show_live_stream_result(
             )
         else:
             print("Appending nothing.")
-    elif keypress == ord("o"):
-        sentence_string = "".join(raw_sentence)
 
-        print("Starting Gemini client")
-        gemini_client = genai.Client()
-        print("Started Gemini client")
+    elif keypress == ord("o"):
+        start_time = timer()
+
+        sentence_string = "".join(raw_sentence)
 
         print(f"Sending prompt for `{sentence_string}`")
 
@@ -91,7 +102,9 @@ def show_live_stream_result(
             contents=f"Turn the following string of letters into proper english. Fill in any missing characters, and complete names if neccessary. Try not to rearrange letters as much as possible. Return ONLY the result.\n\n{sentence_string}",
         )
 
-        print(f"Response: `{response.text}`")
+        end_time = timer()
+
+        print(f"Response: `{response.text}` (Took {timedelta(seconds=end_time-start_time)})")
 
 
 def capture_live_stream():
