@@ -13,7 +13,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 model_path = "./models/hand_landmarker.task"
-
+char = input("Character to save data for (`pass` to not save anything): ")
+ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
 
 # TODO: Consider removing timestamp variable? Seems to no longer be used
 def show_live_stream_result(
@@ -39,25 +40,20 @@ def show_live_stream_result(
         cv2.destroyAllWindows()
         os._exit(1)
     elif keypress == ord("s"):
-        char = input("Character to save data for (`pass` to not save anything): ")
+        if not os.path.exists("./data.json"):
+            with open("data.json", "x+") as f:
+                f.write('{"data":[],"characters":[]}')
 
-        if char == "pass":
-            print("Passing; no data will be saved.")
-        else:
-            if not os.path.exists("./data.json"):
-                with open("data.json", "x+") as f:
-                    f.write('{"data":[],"characters":[]}')
+        with open("data.json", "r+") as f:
+            data = json.load(f)
 
-            with open("data.json", "r+") as f:
-                data = json.load(f)
+            data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
+            data["characters"].append(char)
 
-                data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
-                data["characters"].append(char)
+            f.seek(0)
+            json.dump(data, f)
 
-                f.seek(0)
-                json.dump(data, f)
-
-            print(f"Successfully saved data for character `{char}`.")
+        print(f"Successfully saved data for character `{char}`.")
     elif keypress == ord("p"):
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
@@ -66,10 +62,6 @@ def show_live_stream_result(
             model.predict([np.asarray(get_clean_landmarks(result.hand_landmarks[0]))])[
                 0
             ]
-        )
-
-        ask_append = input(
-            f"Append character `{prediction}` to raw sentence array? [y/n]:  "
         )
 
         if ask_append == "y":
