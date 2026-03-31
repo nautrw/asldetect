@@ -1,10 +1,5 @@
-absl-py
-cffi
-flatbuffers
 mediapipe
-numpy
 opencv-python
-pycparser
-sounddevice
 scikit-learn
 google-genai
+python-dotenv
