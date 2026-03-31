@@ -1,7 +1,8 @@
 import json
 import os
 import pickle
-
+from timeit import default_timer as timer
+from datetime import timedelta
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -14,9 +15,10 @@ from sklearn.model_selection import train_test_split
 
 model_path = "./models/hand_landmarker.task"
 char = input("Character to save data for (`pass` to not save anything): ")
+print(f"Will save for `{char}` (or not if `pass`)")
 ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
+print(f"Saved option {ask_append}")
 
-# TODO: Consider removing timestamp variable? Seems to no longer be used
 def show_live_stream_result(
     result, output_image, timestamp_ms = 0 
 ):
@@ -40,6 +42,8 @@ def show_live_stream_result(
         cv2.destroyAllWindows()
         os._exit(1)
     elif keypress == ord("s"):
+        start_time = timer()
+
         if not os.path.exists("./data.json"):
             with open("data.json", "x+") as f:
                 f.write('{"data":[],"characters":[]}')
@@ -53,7 +57,9 @@ def show_live_stream_result(
             f.seek(0)
             json.dump(data, f)
 
-        print(f"Successfully saved data for character `{char}`.")
+        end_time = timer()
+
+        print(f"Successfully saved data for character `{char}` (Took {timedelta(seconds=end_time-start_time)})")
     elif keypress == ord("p"):
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
@@ -123,6 +129,9 @@ def get_clean_landmarks(hand):
 
 
 def train_model():
+    print("Starting training")
+    start_time = timer()
+
     with open("data.json", "r") as f:
         data = json.load(f)
 
@@ -137,9 +146,11 @@ def train_model():
     model.fit(x_train, y_train)
 
     predict_y = model.predict(x_test)
+    print("Finished training; running accuracy test")
     accuracy = accuracy_score(predict_y, y_test)
+    end_time = timer()
 
-    print(f"Trained with {accuracy * 100}% accuracy")
+    print(f"Trained with {accuracy * 100:,.3f}% accuracy (Took {timedelta(seconds=end_time-start_time)})")
 
     with open("model.pickle", "wb") as f:
         pickle.dump(model, f)
