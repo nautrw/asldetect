@@ -1,18 +1,21 @@
 import json
 import os
 import pickle
-from timeit import default_timer as timer
 from datetime import timedelta
+from timeit import default_timer as timer
+
 import cv2
 import mediapipe as mp
 import numpy as np
+import pydot
+from dotenv import dotenv_values, load_dotenv
 from google import genai
 from mediapipe.tasks.python import vision
 from mediapipe.tasks.python.vision import drawing_utils
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from dotenv import load_dotenv, dotenv_values
+from sklearn.tree import export_graphviz
 
 model_path = "./models/hand_landmarker.task"
 
@@ -25,18 +28,17 @@ char = input("Character to save data for (`pass` to not save anything): ")
 print(f"Will save for `{char}` (or not if `pass`)")
 ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
 print(f"Saved option `{ask_append}`")
-raw_sentence = [] # Must start this here even if it won't be used
+raw_sentence = []  # Must start this here even if it won't be used
 
 print("Starting Gemini client")
 gemini_client = genai.Client(api_key=dotenv_values()["GEMINI_API_KEY"])
 print("Started Gemini client")
 
-def show_live_stream_result(
-    result, output_image, timestamp_ms = 0 
-):
+
+def show_live_stream_result(result, output_image, timestamp_ms=0):
     output_image = cv2.cvtColor(output_image.numpy_view(), cv2.COLOR_BGR2RGB)
     annotated_image = output_image.copy()
-    
+
     if landmarks_list := result.hand_landmarks:
         for hand in landmarks_list:
             drawing_utils.draw_landmarks(
@@ -70,7 +72,9 @@ def show_live_stream_result(
 
         end_time = timer()
 
-        print(f"Successfully saved data for character `{char}` (Took {timedelta(seconds=end_time-start_time)})")
+        print(
+            f"Successfully saved data for character `{char}` (Took {timedelta(seconds=end_time-start_time)})"
+        )
     elif keypress == ord("p"):
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
@@ -80,7 +84,6 @@ def show_live_stream_result(
                 0
             ]
         )
-
 
         if ask_append == "y":
             raw_sentence.append(prediction)
@@ -104,7 +107,9 @@ def show_live_stream_result(
 
         end_time = timer()
 
-        print(f"Response: `{response.text}` (Took {timedelta(seconds=end_time-start_time)})")
+        print(
+            f"Response: `{response.text}` (Took {timedelta(seconds=end_time-start_time)})"
+        )
 
 
 def capture_live_stream():
@@ -124,8 +129,8 @@ def capture_live_stream():
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
-            
-            # Will call show_livestream_result, as seen in landmarker_options 
+
+            # Will call show_livestream_result, as seen in landmarker_options
             landmarker.detect_async(mp_image, frame)
 
             frame += 1
@@ -163,15 +168,32 @@ def train_model():
     accuracy = accuracy_score(predict_y, y_test)
     end_time = timer()
 
-    print(f"Trained with {accuracy * 100:,.3f}% accuracy (Took {timedelta(seconds=end_time-start_time)})")
+    print(
+        f"Trained with {accuracy * 100:,.3f}% accuracy (Took {timedelta(seconds=end_time-start_time)})"
+    )
 
     with open("model.pickle", "wb") as f:
         pickle.dump(model, f)
 
 
+def model_png(model, filename):
+    print(f"Number of estimators: {len(model.estimators_)}")
+    tree = model.estimators_[0]
+    print(f"Representation of first decision tree: {tree}")
+
+    export_graphviz(
+        tree, out_file=f"{filename}.dot", rounded=True, filled=True, precision=100
+    )
+    print("Exported graph visualization to .dot file")
+
+    graph = pydot.graph_from_dot_file(f"{filename}.dot")
+    graph[0].write_png(f"{filename}.png")
+    print("Exported visualization as .png file")
+
+
 def main():
     choice = input(
-        "1. Capture live stream\n2. Train model\n3. See training data statistics\nSelect an option: "
+        "1. Capture live stream\n2. Train model\n3. See training data statistics\n4. Visualize model\nSelect an option: "
     )
 
     match choice:
@@ -182,7 +204,7 @@ def main():
         case "3":
             with open("data.json", "r") as f:
                 data = json.load(f)["characters"]
-                
+
                 # TODO: Make sure that this is sorted alphabetically
                 raw_counts = dict((key, data.count(key)) for key in set(data))
 
@@ -190,6 +212,11 @@ def main():
                     print(f"`{key}``: {value}")
 
                 print(f"Total of {len(data)} characters.")
+        case "4":
+            with open("model.pickle", "rb") as f:
+                model = pickle.load(f)
+
+            model_png(model, "model")
         case _:
             exit("Exiting.")
 

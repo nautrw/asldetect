@@ -5,3 +5,5 @@ imgdata/
 data.json
 model.pickle
 .env
+*.dot
+*.png
