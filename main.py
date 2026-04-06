@@ -26,8 +26,6 @@ else:
 
 char = input("Character to save data for (`pass` to not save anything): ")
 print(f"Will save for `{char}` (or not if `pass`)")
-ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
-print(f"Saved option `{ask_append}`")
 raw_sentence = []  # Must start this here even if it won't be used
 
 print("Starting Gemini client")
@@ -55,27 +53,32 @@ def show_live_stream_result(result, output_image, timestamp_ms=0):
         cv2.destroyAllWindows()
         os._exit(1)
     elif keypress == ord("s"):
-        start_time = timer()
+        if not char == "pass":
+            start_time = timer()
 
-        if not os.path.exists("./data.json"):
-            with open("data.json", "x+") as f:
-                f.write('{"data":[],"characters":[]}')
+            if not os.path.exists("./data.json"):
+                with open("data.json", "x+") as f:
+                    f.write('{"data":[],"characters":[]}')
 
-        with open("data.json", "r+") as f:
-            data = json.load(f)
+            with open("data.json", "r+") as f:
+                data = json.load(f)
 
-            data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
-            data["characters"].append(char)
+                data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
+                data["characters"].append(char)
 
-            f.seek(0)
-            json.dump(data, f)
+                f.seek(0)
+                json.dump(data, f)
 
-        end_time = timer()
+            end_time = timer()
 
-        print(
-            f"Successfully saved data for character `{char}` (Took {timedelta(seconds=end_time-start_time)})"
-        )
+            print(
+                f"Successfully saved data for character `{char}` (Took {timedelta(seconds=end_time-start_time)})"
+            )
+        else:
+            print("Saving nothing.")
     elif keypress == ord("p"):
+        ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
+
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
 
