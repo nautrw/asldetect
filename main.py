@@ -25,8 +25,17 @@ else:
     print("Failed to load .env")
 
 char = input("Character to save data for (`pass` to not save anything): ")
-print(f"Will save for `{char}` (or not if `pass`)")
+print(
+    "Not saving character data"
+    if char.lower() == "pass"
+    else f"Will save data for character {char}"
+)
+ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
+print(
+    f"Will{'' if ask_append.lower() == 'y' else ' not'} append detected characters to raw sentence array"
+)
 raw_sentence = []  # Must start this here even if it won't be used
+new_data = {"data": [], "characters": []}
 
 print("Starting Gemini client")
 gemini_client = genai.Client(api_key=dotenv_values()["GEMINI_API_KEY"])
@@ -51,6 +60,18 @@ def show_live_stream_result(result, output_image, timestamp_ms=0):
 
     if keypress == ord("q"):
         cv2.destroyAllWindows()
+
+        if len(new_data["data"]) == 0:
+            exit("Saving no new data")
+        else:
+            with open("data.json", "r+") as f:
+                data = json.load(f)
+                data["data"].extend(new_data["data"])
+                data["characters"].extend(new_data["characters"])
+                f.seek(0)
+                json.dump(data, f)
+            print("Saved data")
+
         os._exit(1)
     elif keypress == ord("s"):
         if not char == "pass":
@@ -60,25 +81,17 @@ def show_live_stream_result(result, output_image, timestamp_ms=0):
                 with open("data.json", "x+") as f:
                     f.write('{"data":[],"characters":[]}')
 
-            with open("data.json", "r+") as f:
-                data = json.load(f)
-
-                data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
-                data["characters"].append(char)
-
-                f.seek(0)
-                json.dump(data, f)
+            new_data["data"].append(get_clean_landmarks(result.hand_landmarks[0]))
+            new_data["characters"].append(char)
 
             end_time = timer()
 
             print(
-                f"Successfully saved data for character `{char}` (Took {timedelta(seconds=end_time-start_time)})"
+                f"Successfully saved data for character `{char}`; {len(new_data['characters'])} characters saved this session (Took {timedelta(seconds=end_time-start_time)})"
             )
         else:
             print("Saving nothing.")
     elif keypress == ord("p"):
-        ask_append = input(f"Append characters to raw sentence array? [y/n]:  ")
-
         with open("model.pickle", "rb") as f:
             model = pickle.load(f)
 
@@ -88,6 +101,7 @@ def show_live_stream_result(result, output_image, timestamp_ms=0):
             ]
         )
 
+        print(f"Predicted: `{prediction}`")
         if ask_append == "y":
             raw_sentence.append(prediction)
             print(
@@ -225,3 +239,14 @@ def main():
 
 
 main()
+
+if len(new_data["data"]) == 0:
+    exit("Saving no new data")
+else:
+    with open("data.json", "r+") as f:
+        data = json.load(f)
+        data["data"].extend(new_data["data"])
+        data["characters"].extend(new_data["characters"])
+        f.seek(0)
+        json.dump(data, f)
+    print("Saved data")
